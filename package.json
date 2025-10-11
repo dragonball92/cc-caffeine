@@ -1,0 +1,56 @@
+{
+  "name": "cc-caffeine",
+  "version": "0.1.0",
+  "description": "Prevents your computer from sleeping while Claude Code works hard",
+  "main": "caffeine.js",
+  "bin": {
+    "cc-caffeine": "./caffeine.js"
+  },
+  "scripts": {
+    "start": "npm run server",
+    "caffeinate": "node caffeine.js caffeinate",
+    "uncaffeinate": "node caffeine.js uncaffeinate",
+    "status": "node caffeine.js status",
+    "server": "npx electron caffeine.js server",
+    "lint": "eslint --fix *.js src/*.js || echo 'eslint not installed'",
+    "format": "prettier --write *.js src/*.js || echo 'prettier not installed'"
+  },
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "plugin",
+    "nap",
+    "sleep",
+    "sleep-prevention",
+    "caffeine",
+    "caffeinate",
+    "system-tray",
+    "electron"
+  ],
+  "author": {
+    "name": "Samuel Berthe",
+    "email": "hey@samuel-berthe.fr",
+    "url": "https://samuel-berthe.fr"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^28.0.0",
+    "proper-lockfile": "^4.1.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "prettier": "^2.8.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/samber/cc-caffeine.git"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ]
+}
