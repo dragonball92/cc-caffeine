@@ -6,7 +6,7 @@ Work smarter, not longer.
 
 ## 🌍 The Modern Developer's Freedom
 
-Tired of your laptop going to sleep during that perfect coding session on the train? Frustrated when Claude Code disconnects mid-commute because your computer decided it was "idle"?
+Tired of your laptop going to sleep during that perfect coding session because you left your desk 10 minutes? Frustrated when Claude Code disconnects mid-commute because your computer decided it was "idle"?
 
 **cc-caffeine is your personal rebellion against screen timeout.** It keeps your machine awake so you can:
 
@@ -170,9 +170,9 @@ echo '{"session_id": "session-abcd"}' | npx cc-caffeine uncaffeinate
 
 ## 💫 Fuel the Revolution
 
-⭐️ **Star this repo** - Your star powers the caffeine engine!
-☕️ **Buy me a coffee** - I'll literally use it to build more features while drinking actual coffee
-🚀 **Sponsor the revolution** - Help me defeat screen timeouts worldwide!
+- ⭐️ **Star this repo** - Your star powers the caffeine engine!
+- ☕️ **Buy me a coffee** - I'll literally use it to build more features while drinking actual coffee
+- 🚀 **Sponsor the revolution** - Help me defeat screen timeouts worldwide!
 
 [![💖 GitHub Sponsors](https://img.shields.io/github/sponsors/samber?style=for-the-badge)](https://github.com/sponsors/samber)
 
