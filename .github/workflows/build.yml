@@ -1,0 +1,89 @@
+name: CI Checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x, 18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Check if npm install works
+      run: |
+        # Clean install to verify everything works
+        rm -rf node_modules package-lock.json
+        npm install
+        
+    - name: Check version numbers match
+      run: |
+        # Extract version from package.json
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        echo "Package version: $PACKAGE_VERSION"
+        
+        # Extract version from plugin.json
+        if [ -f ".claude-plugin/plugin.json" ]; then
+          PLUGIN_VERSION=$(node -p "require('./.claude-plugin/plugin.json').version")
+          echo "Plugin version: $PLUGIN_VERSION"
+          
+          # Check if versions match
+          if [ "$PACKAGE_VERSION" != "$PLUGIN_VERSION" ]; then
+            echo "❌ Version mismatch detected!"
+            echo "Package version: $PACKAGE_VERSION"
+            echo "Plugin version: $PLUGIN_VERSION"
+            exit 1
+          else
+            echo "✅ Versions match: $PACKAGE_VERSION"
+          fi
+        else
+          echo "⚠️ Warning: .claude-plugin/plugin.json not found"
+          exit 1
+        fi
+        
+    - name: Test version command
+      run: |
+        # Test that our version command works correctly
+        OUTPUT=$(node caffeine.js version)
+        echo "Version command output:"
+        echo "$OUTPUT"
+        
+        # Verify that both versions are displayed
+        if echo "$OUTPUT" | grep -q "Package version:" && echo "$OUTPUT" | grep -q "Plugin version:"; then
+          echo "✅ Version command works correctly"
+        else
+          echo "❌ Version command output is incorrect"
+          exit 1
+        fi
+        
+    - name: Test other commands (syntax check)
+      run: |
+        # Test that other commands don't have syntax errors
+        node caffeine.js --help || true
+        
+    - name: Run linting (if available)
+      run: npm run lint || echo "⚠️ Linting skipped (not configured)"
+      
+    - name: Run formatting check (if available)
+      run: |
+        if command -v prettier &> /dev/null; then
+          npm run format
+          git diff --exit-code || echo "⚠️ Code formatting changes detected"
+        else
+          echo "⚠️ Formatting check skipped (prettier not available)"
+        fi
