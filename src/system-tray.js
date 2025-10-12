@@ -3,9 +3,11 @@
  */
 
 const path = require('path');
+
 const { getActiveSessionsWithLock, cleanupExpiredSessionsWithLock } = require('./session');
 const { getElectron } = require('./electron');
-const { removePidFile } = require('./pid');
+const { removePidFileWithLock } = require('./pid');
+const package = require('../package.json');
 
 let trayState = null;
 
@@ -45,6 +47,25 @@ const createSystemTray = () => {
     }
 
     const contextMenu = Menu.buildFromTemplate([
+      {
+        label: `Version: ${package.version}`,
+        enabled: false
+      },
+      {
+        label: 'Github',
+        click: () => {
+          getElectron().shell.openExternal('https://github.com/samber/cc-caffeine')
+        }
+      },
+      {
+        label: '💖 Sponsor',
+        click: () => {
+          getElectron().shell.openExternal('https://github.com/sponsors/samber')
+        }
+      },
+      {
+        type: 'separator'
+      },
       {
         label: 'Exit',
         click: async () => {
@@ -202,7 +223,7 @@ const shutdownServer = async state => {
 
   // Remove PID file
   try {
-    await removePidFile();
+    await removePidFileWithLock();
   } catch (error) {
     console.error('Error removing PID file:', error.message);
   }

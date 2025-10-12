@@ -3,71 +3,102 @@
  */
 
 const { spawn } = require('child_process');
+
 const { initSessionsFile } = require('./session');
 const { getSystemTray, startPolling, shutdownServer } = require('./system-tray');
 const {
   isRunningInElectron,
-  hideFromDock,
   preventWindowCreation,
   setupAppEventHandlers,
   whenReady,
   quit
 } = require('./electron');
-const { isServerRunning } = require('./commands');
-const { writePidFile } = require('./pid');
+const { isServerRunning, writePidFile, withPidLock, isServerRunningWithLock } = require('./pid');
 
 const CHECK_INTERVAL = 5 * 1000; // 10 seconds
 
 /**
- * Start the caffeine server with system tray
+ * Ensure server is running, start if needed
  */
-const startServer = async () => {
-  try {
-    // Check if server is already running before starting
-    const alreadyRunning = await isServerRunning();
-    if (alreadyRunning) {
-      console.error('Caffeine server is already running');
-      return null;
-    }
-
-    // Write PID file before starting server operations
-    await writePidFile(process.pid);
-
-    await initSessionsFile();
-    const state = getSystemTray();
-    startPolling(state, CHECK_INTERVAL);
-    console.error('Caffeine server started successfully with system tray');
-    return state;
-  } catch (error) {
-    console.error('Failed to start caffeine server:', error);
-    throw error;
-  }
-};
-
-/**
- * Handle server command - start Electron server or delegate
- */
-const handleServer = async () => {
-  // First check if server is already running
-  const alreadyRunning = await isServerRunning();
-  if (alreadyRunning) {
-    console.error('Caffeine server is already running');
+const runServerProcessIfNotStarted = async () => {
+  const isRunning = await isServerRunningWithLock();
+  if (isRunning) {
+    console.error('Server is already running');
     return;
   }
 
-  if (isRunningInElectron()) {
-    console.error('Already running inside Electron, starting server...');
-    return await startServerInsideElectron();
-  } else {
-    console.error('Not running inside Electron, spawning Electron process...');
-    return spawnElectronProcess();
+  console.error('Server not running, starting...');
+  await startServerProcess();
+};
+
+/**
+ * Start server process using npm
+ */
+const startServerProcess = async () => {
+  console.error('Starting caffeine server...');
+
+  const serverProcess = spawn('npm', ['run', 'server'], {
+    detached: true,
+    stdio: 'ignore'
+  });
+
+  serverProcess.unref();
+
+  // Wait for server to start
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  return true;
+};
+
+/**
+ * Handle server command - start Electron server or delegate with atomic file locking
+ */
+const handleServer = async () => {
+  let mustStartServer = false;
+  let mustStartElectron = false;
+
+  await withPidLock(async () => {
+    try {
+      // Inside the lock, check if server is already running
+      const alreadyRunning = await isServerRunning();
+      if (alreadyRunning) {
+        console.error('Caffeine server is already running');
+        return;
+      }
+
+      if (isRunningInElectron()) {
+        mustStartServer = true;
+        console.error('Already running inside Electron, starting server...');
+        await writePidFile(process.pid);
+      } else {
+        mustStartElectron = true;
+        console.error('Not running inside Electron, spawning Electron process...');
+      }
+    } catch (error) {
+      if (error.code === 'ELOCKED' || error.code === 'EEXIST') {
+        // Another process has the lock, server is likely starting up
+        console.error('Server startup is in progress by another process');
+      } else {
+        console.error('Failed to acquire server startup lock:', error);
+        throw error;
+      }
+    }
+  });
+
+  if (mustStartElectron) {
+    await spawnElectronProcess();
+  } else if (mustStartServer) {
+    await startServer();
+  } else if (isRunningInElectron()) {
+    await shutdownServer();
+    process.exit(0);
   }
 };
 
 /**
  * Start server when already inside Electron
  */
-const startServerInsideElectron = async () => {
+const startServer = async () => {
   console.error('Loading Electron...');
 
   // Prevent any window from being created
@@ -82,12 +113,12 @@ const startServerInsideElectron = async () => {
   // Wait for app to be ready before starting system tray
   await whenReady();
 
-  // Hide app from dock on macOS
-  hideFromDock();
-
   // Start the actual server
   try {
-    const state = await startServer();
+    await initSessionsFile();
+    const state = getSystemTray();
+    startPolling(state, CHECK_INTERVAL);
+    console.error('Caffeine server started successfully with system tray');
 
     // Only setup signal handlers if server actually started
     if (state) {
@@ -131,12 +162,14 @@ const spawnElectronProcess = () => {
     process.exit(1);
   });
 
-  return electronProcess;
+  electronProcess.on('close', code => {
+    process.exit(code || 0);
+  });
+
+  return electronProcess.pid;
 };
 
 module.exports = {
-  startServer,
   handleServer,
-  startServerInsideElectron,
-  spawnElectronProcess
+  runServerProcessIfNotStarted
 };

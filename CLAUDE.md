@@ -20,6 +20,7 @@ The system consists of a modular architecture with the following components:
 1. **caffeinate command** - Adds session to JSON file and ensures server is running
 2. **uncaffeinate command** - Removes session from JSON file
 3. **server command** - Starts Electron system tray application that polls JSON file for active sessions
+4. **version command** - Shows version information from package.json and plugin.json
 
 ## Features
 
@@ -83,6 +84,21 @@ npm start
 **Cross-platform background operation:**
 ```bash
 npm run server  # Completely headless - no windows, only system tray
+```
+
+### version
+Shows version information from both package.json and .claude-plugin/plugin.json.
+```bash
+node caffeine.js version
+# or
+npm run version
+```
+
+Output example:
+```
+=== CC-Caffeine Version ===
+Package version: 0.1.1
+Plugin version:  0.1.1
 ```
 
 ## Installation & Setup
@@ -209,6 +225,7 @@ npm start
 Additional npm scripts for development:
 
 ```bash
+npm run version   # Show version information from package.json and plugin.json
 npm run lint      # Run ESLint (if installed)
 npm run format    # Format code with Prettier (if installed)
 ```

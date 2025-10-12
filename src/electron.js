@@ -2,7 +2,7 @@
  * Electron module - Handles all Electron-specific functionality
  */
 
-let electron, Tray, Menu, powerSaveBlocker, nativeImage, app;
+let electron, Tray, Menu, powerSaveBlocker, nativeImage, app, shell;
 let isElectron = false;
 
 /**
@@ -20,6 +20,7 @@ const loadElectron = () => {
     powerSaveBlocker = electron.powerSaveBlocker;
     nativeImage = electron.nativeImage;
     app = electron.app;
+    shell = electron.shell;
     isElectron = true;
   } catch (error) {
     console.error('Failed to load Electron:', error.message);
@@ -41,7 +42,8 @@ const getElectron = () => {
     Menu,
     powerSaveBlocker,
     nativeImage,
-    app
+    app,
+    shell
   };
 };
 
@@ -53,10 +55,11 @@ const isRunningInElectron = () => {
 };
 
 /**
- * Hide app from dock on macOS
+ * Prevent any window from being created
  */
-const hideFromDock = () => {
+const preventWindowCreation = () => {
   const { app } = getElectron();
+
   if (app.dock && typeof app.dock.hide === 'function') {
     try {
       app.dock.hide();
@@ -64,13 +67,7 @@ const hideFromDock = () => {
       // Silently ignore if not macOS or other error
     }
   }
-};
 
-/**
- * Prevent any window from being created
- */
-const preventWindowCreation = () => {
-  const { app } = getElectron();
   app.on('browser-window-created', (event, window) => {
     window.hide();
   });
@@ -135,7 +132,6 @@ module.exports = {
   loadElectron,
   getElectron,
   isRunningInElectron,
-  hideFromDock,
   preventWindowCreation,
   setupAppEventHandlers,
   whenReady,

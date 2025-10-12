@@ -11,16 +11,7 @@ const SESSIONS_FILE = path.join(CONFIG_DIR, 'sessions.json');
 const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 const MAX_RETRIES = 10;
 
-// Session management functions
-const ensureConfigDir = () => {
-  if (!fs.existsSync(CONFIG_DIR)) {
-    fs.mkdirSync(CONFIG_DIR, { recursive: true });
-  }
-};
-
 const initSessionsFile = async () => {
-  ensureConfigDir();
-
   if (!fs.existsSync(SESSIONS_FILE)) {
     const initialData = {
       sessions: {},
@@ -230,7 +221,6 @@ const cleanupExpiredSessionsWithLock = async () => {
 };
 
 module.exports = {
-  ensureConfigDir,
   initSessionsFile,
   readSessionsWithLock,
   addSessionWithLock,

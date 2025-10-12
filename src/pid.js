@@ -21,38 +21,40 @@ const CONFIG_DIR = CLAUDE_PLUGIN_ROOT
   : path.join(os.homedir(), '.claude', 'plugins', 'cc-caffeine');
 const PID_FILE = path.join(CONFIG_DIR, 'server.pid');
 
-/**
- * Ensure config directory exists
- */
-const ensureConfigDir = async () => {
+const withPidLock = async (fn) => {
+  // create if not exists
   try {
-    await fs.promises.mkdir(CONFIG_DIR, { recursive: true });
-  } catch (error) {
-    if (error.code !== 'EEXIST') {
-      throw error;
+    const fd = fs.openSync(PID_FILE, 'wx');
+    fs.closeSync(fd);
+  } catch (err) {
+    if (err.code !== 'EEXIST') {
+      throw err;
     }
+    // If EEXIST, file already exists, nothing to do
   }
+
+  let output = null;
+
+  const release = await lockfile.lock(PID_FILE, {
+    retries: 3,
+    stale: 10000 // 10 seconds
+  });
+  try {
+    output = await fn();
+  } finally {
+    await release();
+  }
+
+  return output;
 };
 
 /**
- * Write PID to file atomically
+ * Write PID to file
  * @param {number} pid - Process ID to write
  */
 const writePidFile = async pid => {
-  await ensureConfigDir();
-
   try {
-    // Acquire lock on PID file
-    const release = await lockfile.lock(PID_FILE, {
-      retries: 0,
-      stale: 1000 // 1 second
-    });
-
-    try {
-      await fs.promises.writeFile(PID_FILE, pid.toString(), 'utf8');
-    } finally {
-      await release();
-    }
+    await fs.promises.writeFile(PID_FILE, pid.toString(), 'utf8');
   } catch (error) {
     if (error.code === 'ENOENT') {
       // File doesn't exist, create it without locking
@@ -64,28 +66,19 @@ const writePidFile = async pid => {
 };
 
 /**
- * Read PID from file atomically
+ * Read PID from file
  * @returns {number|null} PID if found and valid, null otherwise
  */
 const readPidFile = async () => {
   try {
-    const release = await lockfile.lock(PID_FILE, {
-      retries: 3,
-      stale: 10000 // 10 seconds
-    });
+    const pidStr = await fs.promises.readFile(PID_FILE, 'utf8');
+    const pid = parseInt(pidStr.trim(), 10);
 
-    try {
-      const pidStr = await fs.promises.readFile(PID_FILE, 'utf8');
-      const pid = parseInt(pidStr.trim(), 10);
-
-      if (isNaN(pid) || pid <= 0) {
-        return null;
-      }
-
-      return pid;
-    } finally {
-      await release();
+    if (isNaN(pid) || pid <= 0) {
+      return null;
     }
+
+    return pid;
   } catch (error) {
     if (error.code === 'ENOENT') {
       return null; // File doesn't exist
@@ -95,9 +88,9 @@ const readPidFile = async () => {
 };
 
 /**
- * Remove PID file atomically
+ * Remove PID file
  */
-const removePidFile = async () => {
+const removePidFileWithLock = async () => {
   try {
     const release = await lockfile.lock(PID_FILE, {
       retries: 3,
@@ -105,7 +98,7 @@ const removePidFile = async () => {
     });
 
     try {
-      await fs.promises.unlink(PID_FILE);
+      await removePidFile();
     } finally {
       await release();
     }
@@ -115,6 +108,13 @@ const removePidFile = async () => {
       return;
     }
     throw error;
+  }
+};
+
+const removePidFile = async () => {
+  const pid = await readPidFile();
+  if (pid === process.pid) {
+    await fs.promises.unlink(PID_FILE);
   }
 };
 
@@ -158,17 +158,33 @@ const validatePid = async pid => {
       }
 
       const commandLine = output.trim().toLowerCase();
+      for (const line of commandLine.split('\n')) {
+        // Check if command line contains both "caffeine" and "server"
+        const isCaffeineServer = line.includes('caffeine server') || line.includes('caffeine.js server');
+        const isElectron = line.includes('electron');
 
-      // Check if command line contains both "caffeine" and "server"
-      const isCaffeineServer =
-        commandLine.includes('caffeine server') || commandLine.includes('caffeine.js server');
+        if (isCaffeineServer && isElectron) {
+          resolve(true);
+          return;
+        }
+      }
 
-      resolve(isCaffeineServer);
+      resolve(false);
     });
 
     psCommand.on('error', () => {
       resolve(false);
     });
+  });
+};
+
+/**
+ * Check if caffeine server is running using PID file
+ * @returns {Promise<boolean>} True if server is running
+ */
+const isServerRunningWithLock = async () => {
+  return await withPidLock(async () => {
+    return await isServerRunning();
   });
 };
 
@@ -199,40 +215,13 @@ const isServerRunning = async () => {
   }
 };
 
-/**
- * Get the PID of running caffeine server
- * @returns {Promise<number|null>} PID if server is running, null otherwise
- */
-const getServerPid = async () => {
-  try {
-    const pid = await readPidFile();
-
-    if (!pid) {
-      return null;
-    }
-
-    const isValid = await validatePid(pid);
-
-    if (!isValid) {
-      // PID is stale, clean it up
-      await removePidFile();
-      return null;
-    }
-
-    return pid;
-  } catch (error) {
-    console.error('Error getting server PID:', error);
-    return null;
-  }
-};
-
 module.exports = {
   writePidFile,
   readPidFile,
+  removePidFileWithLock,
   removePidFile,
   validatePid,
+  isServerRunningWithLock,
   isServerRunning,
-  getServerPid,
-  CONFIG_DIR,
-  PID_FILE
+  withPidLock
 };

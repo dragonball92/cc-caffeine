@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+const path = require('path');
+const os = require('os');
+const fs = require('fs');
+
 /**
  * Main entry point for CC-Caffeine application
  *
@@ -7,42 +11,51 @@
  * All functionality has been split into separate modules for better organization.
  */
 
-const { handleCaffeinate, handleUncaffeinate, handleStatus, showUsage } = require('./src/commands');
+const { handleCaffeinate, handleUncaffeinate, handleStatus, handleVersion,  handleUsage } = require('./src/commands');
 const { handleServer } = require('./src/server');
 
-// Re-export key functions for backward compatibility and testing
-const {
-  getSystemTray,
-  enableCaffeine,
-  disableCaffeine,
-  updateCaffeineStatus,
-  shutdownServer
-} = require('./src/system-tray');
+const CLAUDE_PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT;
+const CONFIG_DIR = CLAUDE_PLUGIN_ROOT
+  ? CLAUDE_PLUGIN_ROOT
+  : path.join(os.homedir(), '.claude', 'plugins', 'cc-caffeine');
 
-const { isServerRunning, ensureServer } = require('./src/commands');
+const ensureConfigDir = () => {
+  try {
+    fs.mkdirSync(CONFIG_DIR, { recursive: true });
+  } catch (error) {
+    if (error.code !== 'EEXIST') {
+      throw error;
+    }
+  }
+};
 
 /**
  * Main application entry point
  * Handles command routing and delegates to appropriate modules
  */
 const main = async () => {
+  ensureConfigDir();
+
   const command = process.argv[2];
 
   switch (command) {
   case 'caffeinate':
-    handleCaffeinate();
+    await handleCaffeinate();
     break;
   case 'uncaffeinate':
-    handleUncaffeinate();
+    await handleUncaffeinate();
     break;
   case 'server':
-    handleServer();
+    await handleServer();
     break;
   case 'status':
-    handleStatus();
+    await handleStatus();
+    break;
+  case 'version':
+    await handleVersion();
     break;
   default:
-    showUsage();
+    await handleUsage();
   }
 };
 
@@ -51,26 +64,3 @@ main().catch(error => {
   console.error('Fatal error:', error);
   process.exit(1);
 });
-
-// Export functions for testing or external use
-module.exports = {
-  // System tray functionality (from system-tray.js)
-  getSystemTray,
-  enableCaffeine,
-  disableCaffeine,
-  updateCaffeineStatus,
-  shutdownServer,
-
-  // Client utilities (from commands.js)
-  isServerRunning,
-  ensureServer,
-
-  // Server functionality (from server.js)
-  handleServer,
-
-  // Command handlers (from commands.js)
-  handleCaffeinate,
-  handleUncaffeinate,
-  handleStatus,
-  showUsage
-};

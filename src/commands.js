@@ -4,50 +4,12 @@
  * Commands module - Handles all command-line interface functionality
  */
 
-const { spawn } = require('child_process');
-const { addSessionWithLock, removeSessionWithLock } = require('./session');
-const { isServerRunning: isServerRunningPid } = require('./pid');
+const path = require('path');
+const fs = require('fs');
 
-/**
- * Check if caffeine server is currently running
- * Uses PID file for fast and reliable detection
- */
-const isServerRunning = async () => {
-  return await isServerRunningPid();
-};
-
-/**
- * Start server process using npm
- */
-const startServerProcess = async () => {
-  console.error('Starting caffeine server...');
-
-  const serverProcess = spawn('npm', ['run', 'server'], {
-    detached: true,
-    stdio: 'ignore'
-  });
-
-  serverProcess.unref();
-
-  // Wait for server to start
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  return true;
-};
-
-/**
- * Ensure server is running, start if needed
- */
-const ensureServer = async () => {
-  const isRunning = await isServerRunning();
-  if (isRunning) {
-    console.error('Server is already running');
-    return;
-  }
-
-  console.error('Server not running, starting...');
-  await startServerProcess();
-};
+const { addSessionWithLock, removeSessionWithLock, getActiveSessionsWithLock } = require('./session');
+const { isServerRunningWithLock } = require('./pid');
+const { runServerProcessIfNotStarted } = require('./server');
 
 /**
  * Handle session commands with JSON input from Claude Code hooks
@@ -77,7 +39,7 @@ const handleSessionCommand = async (action, sessionOperation) => {
 
     // For caffeinate command, ensure server is running
     if (action === 'caffeinate') {
-      await ensureServer();
+      await runServerProcessIfNotStarted();
     }
 
     console.error(
@@ -111,14 +73,45 @@ const handleUncaffeinate = () => {
 };
 
 /**
+ * Handle version command - show version from package.json and plugin.json
+ */
+const handleVersion = () => {
+  try {
+    // Read package.json
+    const packagePath = path.join(__dirname, '..', 'package.json');
+    const packageData = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+    const packageVersion = packageData.version || 'unknown';
+
+    // Read plugin.json
+    const pluginPath = path.join(__dirname, '..', '.claude-plugin', 'plugin.json');
+    let pluginVersion = 'unknown';
+
+    try {
+      const pluginData = JSON.parse(fs.readFileSync(pluginPath, 'utf8'));
+      pluginVersion = pluginData.version || 'unknown';
+    } catch (error) {
+      pluginVersion = 'not found';
+    }
+
+    console.error('=== CC-Caffeine Version ===');
+    console.error(`Package version: ${packageVersion}`);
+    console.error(`Plugin version:  ${pluginVersion}`);
+
+    if (packageVersion !== pluginVersion && pluginVersion !== 'not found') {
+      console.error('⚠️  Warning: Package and plugin versions do not match!');
+    }
+  } catch (error) {
+    console.error('Error getting version:', error.message);
+    process.exit(1);
+  }
+};
+
+/**
  * Handle status command - show current sessions and server status
  */
 const handleStatus = async () => {
   try {
-    const { getActiveSessionsWithLock } = require('./session');
-    const { isServerRunning } = require('./pid');
-
-    const serverRunning = await isServerRunning();
+    const serverRunning = await isServerRunningWithLock();
     const activeSessions = await getActiveSessionsWithLock();
 
     console.error('=== CC-Caffeine Status ===');
@@ -149,14 +142,15 @@ const handleStatus = async () => {
 /**
  * Show usage help
  */
-const showUsage = () => {
-  console.error('Usage: npx electron caffeine.js [caffeinate|uncaffeinate|server|status]');
+const handleUsage = () => {
+  console.error('Usage: npx electron caffeine.js [caffeinate|uncaffeinate|server|status|version]');
   console.error('');
   console.error('Commands:');
   console.error('  caffeinate [session_id]   - Enable caffeine for current session');
   console.error('  uncaffeinate [session_id] - Disable caffeine for current session');
   console.error('  server                    - Start caffeine server with system tray');
   console.error('  status                    - Show current status and active sessions');
+  console.error('  version                   - Show version information from package.json and plugin.json');
   process.exit(1);
 };
 
@@ -166,12 +160,8 @@ module.exports = {
   handleCaffeinate,
   handleUncaffeinate,
   handleStatus,
-  showUsage,
-
-  // Client utilities
-  isServerRunning,
-  ensureServer,
-  startServerProcess,
+  handleVersion,
+  handleUsage,
 
   // Session operations
   handleSessionCommand
