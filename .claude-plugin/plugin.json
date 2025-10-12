@@ -1,7 +1,7 @@
 {
     "name": "cc-caffeine",
     "description": "Prevents your computer from sleeping while Claude Code works hard",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "author": {
         "name": "Samuel Berthe",
         "email": "hey@samuel-berthe.fr"

@@ -6,7 +6,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "node ${CLAUDE_PLUGIN_ROOT}/caffeine.js caffeinate"
+                        "command": "npx cc-caffeine caffeinate"
                     }
                 ]
             }
@@ -16,7 +16,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "node ${CLAUDE_PLUGIN_ROOT}/caffeine.js caffeinate"
+                        "command": "npx cc-caffeine caffeinate"
                     }
                 ]
             }
@@ -26,7 +26,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "node ${CLAUDE_PLUGIN_ROOT}/caffeine.js caffeinate"
+                        "command": "npx cc-caffeine caffeinate"
                     }
                 ]
             }
@@ -36,7 +36,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "node ${CLAUDE_PLUGIN_ROOT}/caffeine.js uncaffeinate"
+                        "command": "npx cc-caffeine uncaffeinate"
                     }
                 ]
             }
@@ -46,7 +46,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "node ${CLAUDE_PLUGIN_ROOT}/caffeine.js uncaffeinate"
+                        "command": "npx cc-caffeine uncaffeinate"
                     }
                 ]
             }
@@ -56,7 +56,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "node ${CLAUDE_PLUGIN_ROOT}/caffeine.js uncaffeinate"
+                        "command": "npx cc-caffeine uncaffeinate"
                     }
                 ]
             }
