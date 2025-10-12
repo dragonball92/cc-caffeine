@@ -2,6 +2,7 @@
  * Server module - Handles server process management and startup
  */
 
+const path = require('path');
 const { spawn } = require('child_process');
 
 const { initSessionsFile } = require('./session');
@@ -37,9 +38,12 @@ const runServerProcessIfNotStarted = async () => {
 const startServerProcess = async () => {
   console.error('Starting caffeine server...');
 
+  const cwd = path.join(__dirname, '..');
+
   const serverProcess = spawn('npm', ['run', 'server'], {
     detached: true,
-    stdio: 'ignore'
+    stdio: 'ignore',
+    cwd // is needed to find the correct caffeine.js
   });
 
   serverProcess.unref();
@@ -147,10 +151,13 @@ const startServer = async () => {
  * Spawn new Electron process for server
  */
 const spawnElectronProcess = () => {
+  const cwd = path.join(__dirname, '..');
+
   const electronProcess = spawn('npx', ['electron', 'caffeine.js', 'server'], {
     stdio: 'inherit',
     shell: true,
-    detached: false
+    detached: false,
+    cwd // is needed to find caffeine.js
   });
 
   electronProcess.on('exit', code => {

@@ -3,10 +3,7 @@ const path = require('path');
 const os = require('os');
 const lockfile = require('proper-lockfile');
 
-const CLAUDE_PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT;
-const CONFIG_DIR = CLAUDE_PLUGIN_ROOT
-  ? CLAUDE_PLUGIN_ROOT
-  : path.join(os.homedir(), '.claude', 'plugins', 'cc-caffeine');
+const CONFIG_DIR = path.join(os.homedir(), '.claude', 'plugins', 'cc-caffeine');
 const SESSIONS_FILE = path.join(CONFIG_DIR, 'sessions.json');
 const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 const MAX_RETRIES = 10;

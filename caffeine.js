@@ -14,10 +14,7 @@ const fs = require('fs');
 const { handleCaffeinate, handleUncaffeinate, handleStatus, handleVersion,  handleUsage } = require('./src/commands');
 const { handleServer } = require('./src/server');
 
-const CLAUDE_PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT;
-const CONFIG_DIR = CLAUDE_PLUGIN_ROOT
-  ? CLAUDE_PLUGIN_ROOT
-  : path.join(os.homedir(), '.claude', 'plugins', 'cc-caffeine');
+const CONFIG_DIR = path.join(os.homedir(), '.claude', 'plugins', 'cc-caffeine');
 
 const ensureConfigDir = () => {
   try {

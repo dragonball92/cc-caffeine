@@ -15,10 +15,7 @@ const os = require('os');
 const { spawn } = require('child_process');
 const lockfile = require('proper-lockfile');
 
-const CLAUDE_PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT;
-const CONFIG_DIR = CLAUDE_PLUGIN_ROOT
-  ? CLAUDE_PLUGIN_ROOT
-  : path.join(os.homedir(), '.claude', 'plugins', 'cc-caffeine');
+const CONFIG_DIR = path.join(os.homedir(), '.claude', 'plugins', 'cc-caffeine');
 const PID_FILE = path.join(CONFIG_DIR, 'server.pid');
 
 const withPidLock = async (fn) => {
