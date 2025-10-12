@@ -15,6 +15,8 @@ Tired of your laptop going to sleep during that perfect coding session because y
 - 🚴‍♂️ Pedal to the coworking space while maintaining your active connection
 - 📱 Respond to your girlfriend calls during work hours, without Claude Code interruptions
 
+<img width="4032" height="1152" alt="image" src="https://github.com/user-attachments/assets/e1db7f4c-bd49-4ec5-8da4-2595c7f9b80a" />
+
 ## 🎯 Installation
 
 ```bash
