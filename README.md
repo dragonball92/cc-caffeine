@@ -24,6 +24,12 @@ Tired of your laptop going to sleep during that perfect coding session because y
 /plugin install cc-caffeine@samber
 ```
 
+*cc-caffine status*:
+
+![](./assets/icon-coffee-empty.png) - Claude Code is idle
+
+![](./assets/icon-coffee-full.png) - Claude Code is working hard
+
 ## 🌟 The Nomad Developer Manifesto
 
 > "I'll never choose between coding and traveling again. With cc-caffeine, I can do both. My laptop will never sleep while I traverse cities in 5G, my Claude Code will stay connected in my backpack, and my productivity will soar. The future of mobile development is here, and it smells like coffee."
